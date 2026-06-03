@@ -1,0 +1,7 @@
+- This file format is used in openlp customised slides
+- this is the input file to generate slides
+- This consists of english text followed by bahasa melayu text
+- under div id= ot,nt and gospel, please  apply the opening tags {y}{it} and close it with {/y}{/it}.
+- for div id='psalms' in addition to {y} and {it} for the bahasa melayu portion, please apply the {st} tag as well for the second responsatory verse for both english and bahasa melayu
+- create a new file 'output.html' with all the changes
+- Let me know if you have any questions

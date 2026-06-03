@@ -1,0 +1,46 @@
+body {
+    background-color: black;
+    color: white;
+    font-family: 'Tahoma', 'Arial', sans-serif;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    width: 100vw;
+    text-align: center;
+    overflow: hidden;
+}
+
+.slide-container {
+    width: 90%;
+    max-height: 90%;
+    font-size: 55px; /* Adjust based on your preference */
+    line-height: 1.4;
+    font-weight: bold;
+}
+
+.yellow {
+    color: #FFFF00;
+}
+
+i {
+    font-style: italic;
+}
+
+b {
+    font-weight: 900;
+}
+
+sup {
+    font-size: 0.6em;
+    vertical-align: super;
+    color: #AAAAAA;
+    margin-right: 5px;
+}
+
+/* Optional: Add a subtle text shadow for readability */
+.slide-container {
+    text-shadow: 3px 3px 5px rgba(0,0,0,0.5);
+}
