@@ -107,10 +107,11 @@ def generate_slides(html_file, output_folder):
         browser.close()
 
 if __name__ == "__main__":
-    cwd = os.getcwd()
-    target_file = "input.html" if os.path.exists("input.html") else "output.html"
-    output_dir = os.path.join(cwd, "images")
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    input_path = os.path.join(script_dir, "input.html")
+    target_file = "input.html" if os.path.exists(input_path) else "output.html"
+    output_dir = os.path.join(script_dir, "images")
     
     print(f"Generating sectioned slides from {target_file}...")
-    generate_slides(os.path.join(cwd, target_file), output_dir)
+    generate_slides(os.path.join(script_dir, target_file), output_dir)
     print(f"Success! Images saved in: {output_dir}")
