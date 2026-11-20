@@ -1,6 +1,10 @@
 import os
 import re
+import shutil
 from playwright.sync_api import sync_playwright
+
+MAX_FONT_SIZE = 70
+MIN_FONT_SIZE = 24
 
 def apply_formatting(text, is_bold=False):
     """Standardizes OpenLP tags and handles bilingual formatting logic."""
@@ -22,6 +26,43 @@ def apply_formatting(text, is_bold=False):
     
     return '<br><br>'.join(processed_blocks)
 
+def launch_browser(playwright):
+    try:
+        return playwright.chromium.launch()
+    except Exception:
+        system_browser = next(
+            (path for path in (
+                shutil.which("chromium"),
+                shutil.which("chromium-browser"),
+                shutil.which("google-chrome"),
+                shutil.which("google-chrome-stable"),
+            ) if path),
+            None,
+        )
+        if not system_browser:
+            raise
+        print(f"Bundled Chromium not found, using system browser: {system_browser}")
+        return playwright.chromium.launch(executable_path=system_browser)
+
+
+def fit_font_size(page):
+    return page.evaluate(
+        """({ max, min }) => {
+            const el = document.querySelector('.slide-container');
+            const style = getComputedStyle(document.body);
+            const available = window.innerHeight
+                - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom);
+            let size = max;
+            while (el.scrollHeight > available && size > min) {
+                size -= 1;
+                el.style.fontSize = size + 'px';
+            }
+            return { size, overflow: el.scrollHeight > available };
+        }""",
+        {"max": MAX_FONT_SIZE, "min": MIN_FONT_SIZE},
+    )
+
+
 def generate_slides(html_file, output_folder):
     if not os.path.exists(html_file):
         print(f"Error: {html_file} not found.")
@@ -34,14 +75,16 @@ def generate_slides(html_file, output_folder):
         content = f.read()
 
     # Find all div sections with specific IDs
-    sections = re.findall(r'<div id="(ot|nt|gospel|psalms)"[^>]*>(.*?)</div>', content, re.DOTALL | re.IGNORECASE)
+    sections = re.findall(
+        r'<div[^>]*\bid\s*=\s*["\'](ot|nt|gospel|psalms)["\'][^>]*>(.*?)</div>',
+        content, re.DOTALL | re.IGNORECASE)
 
     if not sections:
         # Fallback to splitting by [===] if no sections found
         sections = [('slide', content)]
 
     with sync_playwright() as p:
-        browser = p.chromium.launch()
+        browser = launch_browser(p)
         page = browser.new_page(viewport={'width': 1920, 'height': 1080})
         
         for section_name, section_content in sections:
@@ -79,7 +122,7 @@ def generate_slides(html_file, output_folder):
                         }}
                         .slide-container {{
                             width: 100%;
-                            font-size: 70px;
+                            font-size: {MAX_FONT_SIZE}px;
                             line-height: 1.3;
                             font-weight: 400; /* Normal weight for Minister */
                             text-align: left;
@@ -98,7 +141,13 @@ def generate_slides(html_file, output_folder):
                 
                 page.set_content(full_html)
                 page.wait_for_timeout(50)
-                
+
+                fit = fit_font_size(page)
+                if fit["overflow"]:
+                    print(f"Warning: {section_name}/{i+1:03d} still overflows at {fit['size']}px")
+                elif fit["size"] < MAX_FONT_SIZE:
+                    print(f"Shrunk {section_name}/{i+1:03d} to {fit['size']}px to fit")
+
                 filename = f"{section_name}_{i+1:03d}.png"
                 filepath = os.path.join(section_dir, filename)
                 page.screenshot(path=filepath)

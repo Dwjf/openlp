@@ -20,7 +20,8 @@ python3 generate_images.py
 
 The generator reads `readings/input.html` and writes one PNG slide per verse into
 `readings/images/<section>/<section>_NNN.png`, with the English line on top and the
-Bahasa Malaysia line below in yellow italics.
+Bahasa Malaysia line below in yellow italics. Long slides are shrunk automatically
+to fit.
 
 See [`readings/README.md`](readings/README.md) for the input format, styling rules,
 and importing instructions.
@@ -34,5 +35,16 @@ scripture for live verse selection.
 ## Requirements
 
 - Python 3
-- [Playwright](https://playwright.dev/python/) with a Chromium browser
-  (`pip install playwright && playwright install chromium`)
+- [Playwright](https://playwright.dev/python/) — installed system-wide on this
+  machine (1.65.2 in `/usr/local/lib/python3.13/dist-packages`)
+
+Debian 13 has no `python3-playwright` package, so Playwright was installed with
+pip using the PEP 668 override. To reinstall:
+
+```bash
+sudo apt install -y python3-pip
+sudo python3 -m pip install --break-system-packages playwright
+```
+
+`playwright install chromium` is optional: the generator falls back to the
+system Chromium/Chrome when Playwright's bundled browser is absent.
